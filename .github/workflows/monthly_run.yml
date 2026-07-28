@@ -1,0 +1,29 @@
+name: Daily Check Claude Automation
+
+on:
+  schedule:
+    # Wakes up every single day at midnight UTC
+    - cron: '0 0 * * *'
+  workflow_dispatch: # Keeps your manual testing button active
+
+jobs:
+  run-automation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install pygithub anthropic pandas openpyxl
+
+      - name: Execute script
+        env:
+          MY_GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python automate.py
