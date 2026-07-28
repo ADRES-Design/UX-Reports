@@ -1,0 +1,37 @@
+name: Automated Monthly Skill
+
+on:
+  schedule:
+    - cron: '0 0 1 * *' # Automatically runs at midnight on the 1st of every month
+  workflow_dispatch: # Allows you to manually trigger it with a button to test it
+
+jobs:
+  run-skill:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write # Needed for enterprise cloud authentication instead of a Console key
+
+    steps:
+      # 1. Pull down your repository code so the runner can see your files
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # 2. Trigger the Claude GitHub Action you downloaded
+      - name: Run Claude Skill
+        uses: anthropics/claude-code-action@v1
+        with:
+          # Tell Claude exactly what files to use and what to do with them
+          prompt: |
+            1. Read the instructions inside the file: inputs/monthly_config.txt
+            2. Execute the skill logic described there.
+            3. Write the final generated results as a new Markdown file inside the results/ folder.
+
+      # 3. Automatically commit and push the new files back to your repository
+      - name: Commit and Push Results
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add results/
+          git commit -m "chore: automated monthly skill run" || echo "No changes to commit"
+          git push
